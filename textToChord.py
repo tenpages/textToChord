@@ -2,6 +2,8 @@ import tempfile
 from pychord import Chord
 import pretty_midi
 import midi2audio
+import os
+from typing import Tuple
 
 note_to_number = {'C': 1, 'D': 2, 'E': 3, 'F': 4, 'G': 5, 'A': 6, 'B': 7}
 
@@ -9,17 +11,18 @@ def createChord(input: str) -> Chord:
     chord = Chord(input)
     return chord
 
-def parseRequest(req: str) -> str:
+def parseRequest(req: str) -> Tuple[str, str]:
     cmd = req.split(" ")
+    print(cmd)
     if len(cmd) <= 1:
         return -1
     if cmd[0] == '/d':
         chord = createChord(cmd[1])
         sound = createSound(chord, int(cmd[2]))
-        return sound
+        return chord.chord, sound
     if cmd[0] == '/c':
         return parseChord(cmd[1:])
-    return ""
+    return "", ""
 
 def createSound(chord: Chord, root_pitch: int = 3, length: int = 1) -> str:
     midi_data = pretty_midi.PrettyMIDI()
@@ -36,7 +39,8 @@ def createSound(chord: Chord, root_pitch: int = 3, length: int = 1) -> str:
     midi_data.write(midi_pointer[1])
 
     fs = midi2audio.FluidSynth()
-    fs.midi_to_audio(midi_pointer[1], "test.wav")
+    fs.midi_to_audio(midi_pointer[1], wav_pointer[1])
+    os.remove(midi_pointer[1])
 
     return wav_pointer[1]
 
